@@ -6,6 +6,7 @@ This is a Google AI Studio app that helps with corporate evaluation and ranking.
 
 - **Live Demo**: [GitHub Pages](https://hachi399.github.io/Corporate-Ranker/)
 - **Setup Guide**: [SETUP_GUIDE.md](./SETUP_GUIDE.md)
+- **Deployment Checklist**: [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
 - **Secrets Configuration**: [.github/SECRETS_SETUP.md](./.github/SECRETS_SETUP.md)
 
 ## Run Locally
@@ -37,26 +38,34 @@ This is a Google AI Studio app that helps with corporate evaluation and ranking.
 
 ## Deploy to GitHub Pages
 
-1. **Build the app**:
-   ```bash
-   npm run build
-   # Outputs to docs/ directory
-   ```
+### Step 1: Configure GitHub Secrets
 
-2. **Commit and push**:
-   ```bash
-   git add docs/
-   git commit -m "chore: rebuild for deployment"
-   git push origin main
-   ```
+1. Go to **Settings → Secrets and variables → Actions**
+2. Add a new secret:
+   - **Name**: `VITE_GEMINI_API_KEY`
+   - **Value**: Your Gemini API key from https://aistudio.google.com/apikey
 
-3. **GitHub Pages Configuration**:
-   - Go to Settings → Pages
-   - Set Source to "Deploy from a branch"
-   - Select `main` branch and `/docs` folder
-   - Save
+### Step 2: Configure GitHub Pages
 
-Your app will be published at: `https://hachi399.github.io/Corporate-Ranker/`
+1. Go to **Settings → Pages**
+2. Set:
+   - **Source**: "Deploy from a branch"
+   - **Branch**: `main`
+   - **Folder**: `/docs`
+3. Save
+
+### Step 3: Deploy
+
+Just push to main branch:
+```bash
+git add .
+git commit -m "Update code"
+git push origin main
+```
+
+GitHub Actions will automatically:
+1. Build your app with the API key from Secrets
+2. Deploy to GitHub Pages at: `https://hachi399.github.io/Corporate-Ranker/`
 
 ## Available Scripts
 

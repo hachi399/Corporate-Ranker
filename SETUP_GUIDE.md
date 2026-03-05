@@ -11,37 +11,36 @@
 
 ## 🚀 **セットアップ手順**
 
-### 1. GitHub Pages の有効化
+### 1. GitHub Secrets の設定（必須）
 
-リポジトリのSettings → Pagesで以下を設定：
+**ステップ1: リポジトリの Secrets に API キーを登録**
+1. GitHub でリポジトリを開く
+2. **Settings → Secrets and variables → Actions**
+3. **"New repository secret"** をクリック
+4. 以下の情報を入力：
+   - **Name**: `VITE_GEMINI_API_KEY` （正確にスペルを確認！）
+   - **Secret**: https://aistudio.google.com/apikey から取得したAPIキー
+5. **Add secret** をクリック
 
-1. **Build and deployment** セクションで:
+### 2. GitHub Pages の設定
+
+**ステップ2: GitHub Pages をセットアップ**
+1. リポジトリの **Settings → Pages**
+2. **Build and deployment** セクション:
    - **Source**: "Deploy from a branch"
-   - **Branch**: `main` + `/docs` folder
-   
-2. 保存
+   - **Branch**: `main`
+   - **Folder**: `/docs`
+3. **Save**
 
-3. GitHub Pages が有効化されます：
-   - 公開URL: `https://hachi399.github.io/Corporate-Ranker/`
+これで GitHub Actions が自動的にビルド・デプロイを実行します
 
-### 2. GitHub Secrets の設定（ローカルテスト用）
+### 3. ローカル開発用の環境変数設定
 
-ローカルで開発する場合、`.env` ファイルを作成：
-
+**ステップ3: ローカル環境の準備**
 ```bash
 cp .env.example .env
-# VITE_GEMINI_API_KEY に Gemini API キーを設定
+# .env ファイルを編集して VITE_GEMINI_API_KEY を設定
 ```
-
-GitHub Pages デプロイ時には GitHub Secrets は不要です（ビルドに APIキーが埋め込まれます）
-
-### 3. ローカル開発は環境変数が必須
-
-```bash
-VITE_GEMINI_API_KEY=your_api_key npm run dev
-```
-
-または `.env` ファイルで設定後に `npm run dev`
 
 ### 4. 依存パッケージのインストール
 
@@ -60,10 +59,7 @@ npm run lint
 ### 開発環境で実行
 
 ```bash
-# APIキーを設定してから実行
-VITE_GEMINI_API_KEY=your_api_key npm run dev
-
-# または .env ファイルを作成してから実行
+# .env ファイルに VITE_GEMINI_API_KEY を設定してから実行
 npm run dev
 ```
 
@@ -71,30 +67,56 @@ npm run dev
 - 開発サーバーが `http://localhost:3000` で起動
 - Hot reload 対応
 
-## 🚀 **GitHub Pages へのデプロイ**
+## 🚀 **自動デプロイ（GitHub Actions）**
+
+### GitHub Actions でのデプロイフロー
+
+コードを `main` ブランチにプッシュすると、自動的に以下が実行されます：
+
+```
+git push
+  ↓
+GitHub Actions 実行
+  ↓
+npm ci
+  ↓
+npm run lint
+  ↓
+VITE_GEMINI_API_KEY (from Secrets) を使用して npm run build
+  ↓
+docs/ に APIキー付きでビルド
+  ↓
+GitHub Pages にアップロード
+  ↓
+https://hachi399.github.io/Corporate-Ranker/ で自動公開
+```
 
 ### デプロイ手順
 
-1. **ローカルでビルド**
+1. **ローカルでコードを修正**
    ```bash
-   VITE_GEMINI_API_KEY=your_api_key npm run build
+   # コードを編集
    ```
-   - `docs/` ディレクトリが生成される
 
 2. **GitHub にプッシュ**
    ```bash
    git add .
-   git commit -m "Build: Update docs for deployment"
+   git commit -m "feat: update description"
    git push origin main
    ```
 
-3. **GitHub Pages で公開**
-   - 自動的に `https://hachi399.github.io/Corporate-Ranker/` で公開されます
+3. **GitHub Actions が自動実行**
+   - リポジトリの **Actions** タブで進行状況を確認
+   - ビルドとデプロイが自動的に実行されます
+
+4. **GitHub Pages で確認**
+   - `https://hachi399.github.io/Corporate-Ranker/` にアクセス
 
 ### 重要な注意
 
-- **APIキーはビルド時に埋め込まれます** - クライアント側に埋め込まれるため、誰でも見ることができます
-- `docs/` ディレクトリはコミットが必須です (`.gitignore` から除外されています)
+- **GitHub Secrets に `VITE_GEMINI_API_KEY` が正しく設定されていることが必須です**
+- ローカルでは `.env` ファイルを使用（コミットされません）
+- 本番デプロイでは GitHub Secrets から自動的に API キーが注入されます
 
 ## 📁 **プロジェクト構造**
 

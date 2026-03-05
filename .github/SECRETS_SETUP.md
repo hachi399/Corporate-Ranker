@@ -11,19 +11,59 @@
 - Cloud Functions for Firebase
 - 独自のバックエンドサーバー
 
-## 1. GitHub Pages の設定
+## 1. GitHub Secrets の設定（必須）
+
+### リポジトリのSecretsページにアクセス
+1. GitHubでリポジトリを開く
+2. **Settings → Secrets and variables → Actions**
+3. **"New repository secret"** をクリック
+
+### 必須の Secret を追加
+
+**Secret 名**: `VITE_GEMINI_API_KEY`
+- **値**: https://aistudio.google.com/apikey から取得したAPIキー
+- このキーはGitHub Actions のビルド時にクライアントコードに埋め込まれます
+
+**必ず以下の点を確認:**
+- Secret 名は正確に `VITE_GEMINI_API_KEY` （スペルを確認）
+- 値は Gemini API キーそのもの
+- 末尾に空白がないことを確認
+
+## 2. GitHub Pages の設定
 
 ### リポジトリのPages設定
-1. GitHubでリポジトリを開く → Settings → Pages
+1. GitHubでリポジトリを開く → **Settings → Pages**
 2. **Build and deployment** セクション:
    - **Source**: "Deploy from a branch" を選択
    - **Branch**: `main`
    - **Folder**: `/docs` を選択
-3. 保存
+3. **Save** をクリック
 
-## 2. ローカル開発でのAPIキー設定
+GitHub Actions が自動的にビルド・デプロイを実行します。
 
-`.env` ファイルを作成してAPIキーを設定：
+## 3. GitHub Actions ワークフローの流れ
+
+```
+git push
+  ↓
+GitHub Actions 実行
+  ↓
+npm ci (依存関係インストール)
+  ↓
+npm run lint (型チェック)
+  ↓
+npm run build (ビルド、VITE_GEMINI_API_KEY を環境変数として使用)
+  ↓
+docs/ に APIキーが埋め込まれたバンドルを生成
+  ↓
+GitHub Pages にアップロード
+  ↓
+https://hachi399.github.io/Corporate-Ranker/ で公開
+```
+
+## 4. ローカル開発環境での設定
+
+ローカルで開発する場合は `.env` ファイルを使用：
 
 ```bash
 cp .env.example .env
@@ -33,64 +73,57 @@ VITE_GEMINI_API_KEY=your_gemini_api_key
 
 **注意**: `.env` は `.gitignore` に含まれているため、git にコミットされません
 
-## 3. ビルドとデプロイの手順
+## 5. トラブルシューティング
 
-### ステップ1: ローカルでビルド
-```bash
-npm run build
-# docs/ ディレクトリが生成される
-```
+### GitHub Actions でビルドが失敗する場合
 
-### ステップ2: GitHub にプッシュ
-```bash
-git add .
-git commit -m "chore: rebuild docs for deployment"
-git push origin main
-```
+1. **WorkflowのログをWatchする**
+   - GitHub → Actions タブ
+   - 最新のワークフロー実行をクリック
+   - "Build and Deploy to GitHub Pages" ジョブをクリック
+   - **"Build for production"** ステップを展開して詳細ログを確認
 
-### ステップ3: GitHub Pages で確認
-```
-https://hachi399.github.io/Corporate-Ranker/
-```
+2. **APIキーが正しく埋め込まれているか確認**
+   ```
+   ログ出力で以下のような行があるか確認:
+   - "VITE_GEMINI_API_KEY=***"（マスクされているはず）
+   ```
 
-## 4. GitHub Actions は不요（非使用）
+3. **Secret が正しく設定されているか確認**
+   - Settings → Secrets and variables → Actions
+   - `VITE_GEMINI_API_KEY` が存在するか
+   - 値が空でないか
 
-デプロイに GitHub Actions を使用しないため、Secrets は不要です。
+4. **ワークフロー内の環境変数確認**
+   - `.github/workflows/build.yml` で以下を確認:
+   ```yaml
+   - name: Build for production
+     env:
+       VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}  ← 正しい名前か確認
+     run: npm run build
+   ```
 
-デプロイフロー：
-```
-ローカルでビルド → docs/ に出力 → git add → push → GitHub Pages で自動公開
-```
+5. **Vite 設定確認**
+   - `vite.config.ts` で `VITE_GEMINI_API_KEY` が定義されているか確認:
+   ```typescript
+   define: {
+     'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),
+   }
+   ```
 
-## 5. CI/CD を使用する場合（オプション）
+### アプリが起動するが API が動作しない場合
 
-GitHub Actions でビルドを自動化したい場合は、以下の手順で `.github/workflows/build.yml` を設定します：
+1. **ブラウザの開発者ツールで API キーが埋め込まれているか確認**
+   - DevTools → Application → Storage → Local Storage
+   - または Sources タブで JavaScript ファイル内に API キーを検索
 
-```yaml
-name: Build and Deploy
+2. **コンソールエラーを確認**
+   - DevTools → Console タブでエラーメッセージを確認
+   - Gemini API のエラーメッセージを検索
 
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22.x'
-      - run: npm ci
-      - run: npm run lint
-      - run: VITE_GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: './docs'
-      - uses: actions/deploy-pages@v4
-```
-
-その場合、Settings → Secrets に `GEMINI_API_KEY` を追加してください。
+3. **API クォータ確認**
+   - https://aistudio.google.com/app/apikey で使い切っていないか確認
+   - 無料枠は制限がある可能性があります
 
 ## 6. セキュリティ推奨策
 
