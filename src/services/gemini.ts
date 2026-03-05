@@ -1,14 +1,22 @@
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { RawCompanyData, ApiUsage } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_GEMINI_API_KEY?: string;
+    };
+  }
+}
+
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || "" });
 
 export async function fetchCompanyData(companyNames: string[]): Promise<{ data: RawCompanyData[], usage: ApiUsage }> {
   const response: GenerateContentResponse = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: `Analyze the following Japanese companies and provide realistic data for the 13 specified metrics. 
+    contents: `Analyze the following Japanese companies and provide realistic data for the 13 specified metrics.
     Companies: ${companyNames.join(", ")}
-    
+
     Metrics to provide:
     0. englishName: Official English name of the company (string)
     1. genderRatio: % of women in workforce (number)
@@ -24,7 +32,7 @@ export async function fetchCompanyData(companyNames: string[]): Promise<{ data: 
     11. medianOvertime: Monthly overtime hours (number)
     12. promotionTransparency: Fairness score 1.0-5.0 (number)
     13. remoteFlex: Flexibility level (one of: "free", "high", "mid", "low")
-    
+
     Also provide a "sources" object where each key is the metric name and the value is a URL to a credible source (e.g., official company site, government data, or reliable news) that supports the data provided.`,
     config: {
       responseMimeType: "application/json",
@@ -66,15 +74,15 @@ export async function fetchCompanyData(companyNames: string[]): Promise<{ data: 
                 remoteFlex: { type: Type.STRING },
               },
               required: [
-                "genderRatio", "income", "culture", "career", "welfare", 
-                "social", "turnoverRate", "avgTenure", "employeeTrend", 
+                "genderRatio", "income", "culture", "career", "welfare",
+                "social", "turnoverRate", "avgTenure", "employeeTrend",
                 "profitMargin", "medianOvertime", "promotionTransparency", "remoteFlex"
               ]
             }
           },
           required: [
-            "name", "englishName", "genderRatio", "income", "culture", "career", "welfare", 
-            "social", "turnoverRate", "avgTenure", "employeeTrend", 
+            "name", "englishName", "genderRatio", "income", "culture", "career", "welfare",
+            "social", "turnoverRate", "avgTenure", "employeeTrend",
             "profitMargin", "medianOvertime", "promotionTransparency", "remoteFlex", "sources"
           ]
         }
@@ -85,11 +93,11 @@ export async function fetchCompanyData(companyNames: string[]): Promise<{ data: 
   try {
     const data = JSON.parse(response.text || "[]");
     const usageMetadata = response.usageMetadata;
-    
+
     const promptTokens = usageMetadata?.promptTokenCount || 0;
     const candidatesTokens = usageMetadata?.candidatesTokenCount || 0;
     const totalTokens = usageMetadata?.totalTokenCount || 0;
-    
+
     const estimatedCostUsd = (promptTokens * 0.000000075) + (candidatesTokens * 0.0000003);
 
     return {
@@ -112,7 +120,7 @@ export async function fetchExplanation(companyName: string, metricLabel: string,
     model: "gemini-3-flash-preview",
     contents: `あなたは企業の組織文化と財務分析のエキスパートです。
     ${companyName}の「${metricLabel}」に関する評価（5点満点中${score}点、実数値：${rawValue}）について、その評価に至った根本的な理由と背景を解説してください。
-    
+
     解説のポイント：
     1. ${companyName}という特定の企業の実態や評判、業界内での立ち位置に言及すること。
     2. 単に数字を説明するのではなく、なぜそのような数字・評価になっているのかという「構造的な理由」を推測・分析すること。
@@ -120,3 +128,4 @@ export async function fetchExplanation(companyName: string, metricLabel: string,
   });
   return response.text || "説明を取得できませんでした。";
 }
+
