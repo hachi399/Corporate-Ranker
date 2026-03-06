@@ -73,7 +73,26 @@ VITE_GEMINI_API_KEY=your_gemini_api_key
 
 **注意**: `.env` は `.gitignore` に含まれているため、git にコミットされません
 
-## 5. トラブルシューティング
+## 5. GitHub Pages キャッシュに関する注意
+
+GitHub Pages は約15分間ファイルをキャッシュする場合があります。ビルド後、すぐに変更が反映されない場合：
+
+1. **ブラウザキャッシュをクリア**
+   ```
+   Ctrl+Shift+R （Windows/Linux）
+   Cmd+Shift+R （Mac）
+   ```
+
+2. **GitHub Pages キャッシュをクリア**
+   - リポジトリの Settings を再度開く
+   - Pages セクションで "Save" をクリック（変更なしでも可）
+
+3. **ワークフローのステータスを確認**
+   - GitHub → Actions タブ
+   - 最新のワークフロー実行が完了しているか確認
+   - Green チェックマークが表示されているか確認
+
+## 6. トラブルシューティング
 
 ### GitHub Actions でビルドが失敗する場合
 
@@ -86,46 +105,73 @@ VITE_GEMINI_API_KEY=your_gemini_api_key
 2. **APIキーが正しく埋め込まれているか確認**
    ```
    ログ出力で以下のような行があるか確認:
-   - "VITE_GEMINI_API_KEY=***"（マスクされているはず）
+   - タスク完了メッセージで APIs キーが使用されている
    ```
 
 3. **Secret が正しく設定されているか確認**
    - Settings → Secrets and variables → Actions
    - `VITE_GEMINI_API_KEY` が存在するか
-   - 値が空でないか
+   - 値が空でないか（Secrets の値は表示されません）
 
 4. **ワークフロー内の環境変数確認**
    - `.github/workflows/build.yml` で以下を確認:
    ```yaml
    - name: Build for production
      env:
-       VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}  ← 正しい名前か確認
+       VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
      run: npm run build
    ```
 
 5. **Vite 設定確認**
-   - `vite.config.ts` で `VITE_GEMINI_API_KEY` が定義されているか確認:
+   - `vite.config.ts` で以下を確認:
    ```typescript
+   const apiKey = process.env.VITE_GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || '';
    define: {
-     'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),
+     'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(apiKey),
    }
    ```
 
+### スタイルシート（CSS）が読み込めない場合
+
+1. **キャッシュをクリア**
+   - Ctrl+Shift+R でハードリロード
+   - 開発者ツール → Application → Storage → Clear All（Chrome）
+
+2. **ワークフロー実行を確認**
+   - GitHub Pages が正しいブランチとフォルダ（`/docs`）から配信されているか確認
+
+3. **ファイルが生成されているか確認**
+   ```bash
+   # ローカルでビルドして確認
+   ls -la docs/assets/
+   ```
+
+4. **ベースパスの確認**
+   - `vite.config.ts` で `base: '/Corporate-Ranker/'` が設定されているか確認
+   - `index.html` のCSS参照パスが `/Corporate-Ranker/assets/` で始まっているか確認
+
 ### アプリが起動するが API が動作しない場合
 
-1. **ブラウザの開発者ツールで API キーが埋め込まれているか確認**
-   - DevTools → Application → Storage → Local Storage
-   - または Sources タブで JavaScript ファイル内に API キーを検索
-
-2. **コンソールエラーを確認**
+1. **ブラウザの開発者ツールでエラーを確認**
    - DevTools → Console タブでエラーメッセージを確認
-   - Gemini API のエラーメッセージを検索
+   - "API key should be set when using the Gemini API" というエラーが出ていないか確認
 
-3. **API クォータ確認**
+2. **APIキーが埋め込まれているか確認**
+   - DevTools → Sources タブ
+   - `docs/assets/index-*.js` ファイルを開く
+   - Ctrl+F で検索：APIキーの一部（例：`sk-`で始まる場合）
+   - キーが見つかるか確認
+
+3. **GitHub Secrets をもう一度確認**
+   - Settings → Secrets and variables → Actions
+   - `VITE_GEMINI_API_KEY` の値が正しいか確認
+   - ブランク行がないか確認
+
+4. **API クォータ確認**
    - https://aistudio.google.com/app/apikey で使い切っていないか確認
    - 無料枠は制限がある可能性があります
 
-## 6. セキュリティ推奨策
+## 7. セキュリティ推奨策
 
 ### オプションA: Vercel Functionsに移行
 ```bash

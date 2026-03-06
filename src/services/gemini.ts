@@ -9,9 +9,29 @@ declare global {
   }
 }
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || "" });
+function getApiKey(): string {
+  const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
+
+  // Debug: log the first few characters of the key to confirm which value is being used.
+  // Remove this after debugging to avoid leaking any portion of the key in logs.
+  console.log('DEBUG: VITE_GEMINI_API_KEY prefix=', apiKey.slice(0, 6));
+
+  // Detect placeholder keys and provide a clearer message to the user.
+  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE' || apiKey.toLowerCase().includes('your_api_key')) {
+    throw new Error(
+      'Gemini API key is missing or invalid. Set VITE_GEMINI_API_KEY in your .env file or environment variables (see README).' 
+    );
+  }
+
+  return apiKey;
+}
+
+function getAiClient() {
+  return new GoogleGenAI({ apiKey: getApiKey() });
+}
 
 export async function fetchCompanyData(companyNames: string[]): Promise<{ data: RawCompanyData[], usage: ApiUsage }> {
+  const ai = getAiClient();
   const response: GenerateContentResponse = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `Analyze the following Japanese companies and provide realistic data for the 13 specified metrics.
@@ -116,6 +136,7 @@ export async function fetchCompanyData(companyNames: string[]): Promise<{ data: 
 }
 
 export async function fetchExplanation(companyName: string, metricLabel: string, score: number, rawValue: any): Promise<string> {
+  const ai = getAiClient();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `あなたは企業の組織文化と財務分析のエキスパートです。
