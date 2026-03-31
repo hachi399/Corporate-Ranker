@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Info, Download } from 'lucide-react';
+import { Info, Download } from 'lucide-react';
 import { CompanyScore, EVALUATION_ITEMS } from '../types';
 import { motion } from 'motion/react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
@@ -37,79 +37,149 @@ export default function RankingTable({ companies, onShowDetail, onExportPDF }: P
       </div>
 
       <div className="bg-white rounded-3xl border border-zinc-200 overflow-hidden shadow-xl shadow-zinc-200/50">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-zinc-50/50 border-b border-zinc-100">
-              <th className="px-8 py-5 text-xs font-bold text-zinc-400 uppercase tracking-widest w-24">順位</th>
-              <th className="px-8 py-5 text-xs font-bold text-zinc-400 uppercase tracking-widest">企業名 & 評価チャート</th>
-              <th className="px-8 py-5 text-xs font-bold text-zinc-400 uppercase tracking-widest text-center w-40">総合スコア</th>
-              <th className="px-8 py-5 text-xs font-bold text-zinc-400 uppercase tracking-widest text-right w-40">アクション</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-50">
-            {companies.map((company, index) => (
-              <motion.tr
-                key={company.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="hover:bg-zinc-50/30 transition-colors group"
-              >
-                <td className="px-8 py-8 align-top">
-                  <span className={`inline-flex items-center justify-center w-10 h-10 rounded-2xl font-black text-lg ${
+        {/* Desktop / tablet: table view */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-zinc-50/50 border-b border-zinc-100">
+                <th className="px-8 py-5 text-xs font-bold text-zinc-400 uppercase tracking-widest w-24">順位</th>
+                <th className="px-8 py-5 text-xs font-bold text-zinc-400 uppercase tracking-widest">企業名 & 評価チャート</th>
+                <th className="px-8 py-5 text-xs font-bold text-zinc-400 uppercase tracking-widest text-center w-40">総合スコア</th>
+                <th className="px-8 py-5 text-xs font-bold text-zinc-400 uppercase tracking-widest text-right w-40">アクション</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-50">
+              {companies.map((company, index) => (
+                <motion.tr
+                  key={company.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="hover:bg-zinc-50/30 transition-colors group"
+                >
+                  <td className="px-8 py-8 align-top">
+                    <span className={`inline-flex items-center justify-center w-10 h-10 rounded-2xl font-black text-lg ${
+                      index === 0 ? 'bg-amber-100 text-amber-700' : 
+                      index === 1 ? 'bg-zinc-100 text-zinc-700' : 
+                      index === 2 ? 'bg-orange-100 text-orange-700' : 
+                      'text-zinc-300'
+                    }`}>
+                      {index + 1}
+                    </span>
+                  </td>
+                  <td className="px-8 py-8">
+                    <div className="flex flex-col xl:flex-row gap-10 items-start">
+                      <div className="min-w-[280px]">
+                        <div className="font-bold text-zinc-900 text-2xl tracking-tight">{company.name}</div>
+                        <div className="text-sm text-zinc-400 mt-2 font-medium">{company.raw.englishName}</div>
+                      </div>
+                      
+                      <div id={`chart-${index}`} className="w-full h-64 max-w-[450px] rounded-3xl p-4" style={{ backgroundColor: '#f8fafc' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getChartData(company)}>
+                            <PolarGrid stroke="#e2e8f0" />
+                            <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} />
+                            <PolarRadiusAxis domain={[0, 5]} tick={false} axisLine={false} />
+                            <Radar
+                              name={company.name}
+                              dataKey="value"
+                              stroke="#0f172a"
+                              fill="#0f172a"
+                              fillOpacity={0.1}
+                              strokeWidth={2}
+                            />
+                          </RadarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-8 text-center align-top">
+                    <div className="inline-flex items-baseline gap-1 bg-zinc-50 px-4 py-2 rounded-2xl">
+                      <span className="text-3xl font-black text-zinc-900">{company.total}</span>
+                      <span className="text-zinc-400 text-sm font-bold">/ 65</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-8 text-right align-top">
+                    <button
+                      onClick={() => onShowDetail(company)}
+                      className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all active:scale-95"
+                    >
+                      <Info size={18} />
+                      詳細
+                    </button>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile: stacked cards */}
+        <div className="sm:hidden p-4 space-y-6">
+          {companies.map((company, index) => (
+            <motion.div
+              key={company.name}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="bg-white rounded-3xl p-6 shadow-lg border border-zinc-200"
+            >
+              <div className="flex flex-col gap-6 items-center text-center">
+                {/* Rank */}
+                <div className="flex items-center justify-center">
+                  <span className={`inline-flex items-center justify-center w-12 h-12 rounded-full font-black text-xl ${
                     index === 0 ? 'bg-amber-100 text-amber-700' : 
                     index === 1 ? 'bg-zinc-100 text-zinc-700' : 
                     index === 2 ? 'bg-orange-100 text-orange-700' : 
-                    'text-zinc-300'
+                    'bg-zinc-50 text-zinc-300'
                   }`}>
                     {index + 1}
                   </span>
-                </td>
-                <td className="px-8 py-8">
-                  <div className="flex flex-col xl:flex-row gap-10 items-start">
-                    <div className="min-w-[280px]">
-                      <div className="font-bold text-zinc-900 text-2xl tracking-tight">{company.name}</div>
-                      <div className="text-sm text-zinc-400 mt-2 font-medium">{company.raw.englishName}</div>
-                    </div>
-                    
-                    <div id={`chart-${index}`} className="w-full h-64 max-w-[450px] rounded-3xl p-4" style={{ backgroundColor: '#f8fafc' }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getChartData(company)}>
-                          <PolarGrid stroke="#e2e8f0" />
-                          <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} />
-                          <PolarRadiusAxis domain={[0, 5]} tick={false} axisLine={false} />
-                          <Radar
-                            name={company.name}
-                            dataKey="value"
-                            stroke="#0f172a"
-                            fill="#0f172a"
-                            fillOpacity={0.1}
-                            strokeWidth={2}
-                          />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-8 py-8 text-center align-top">
-                  <div className="inline-flex items-baseline gap-1 bg-zinc-50 px-4 py-2 rounded-2xl">
-                    <span className="text-3xl font-black text-zinc-900">{company.total}</span>
-                    <span className="text-zinc-400 text-sm font-bold">/ 65</span>
-                  </div>
-                </td>
-                <td className="px-8 py-8 text-right align-top">
-                  <button
-                    onClick={() => onShowDetail(company)}
-                    className="inline-flex items-center gap-2 px-6 py-3 text-sm font-bold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-all active:scale-95"
-                  >
-                    <Info size={18} />
-                    詳細
-                  </button>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+
+                {/* Company Name */}
+                <div>
+                  <div className="font-bold text-zinc-900 text-2xl tracking-tight">{company.name}</div>
+                  <div className="text-sm text-zinc-400 mt-1 font-medium">{company.raw.englishName}</div>
+                </div>
+
+                {/* Chart */}
+                <div className="w-full h-64 rounded-3xl p-4" style={{ backgroundColor: '#f8fafc' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getChartData(company)}>
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 600 }} />
+                      <PolarRadiusAxis domain={[0, 5]} tick={false} axisLine={false} />
+                      <Radar
+                        name={company.name}
+                        dataKey="value"
+                        stroke="#0f172a"
+                        fill="#0f172a"
+                        fillOpacity={0.1}
+                        strokeWidth={2}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Total Score */}
+                <div className="text-center">
+                  <div className="text-4xl font-black text-zinc-900">{company.total}</div>
+                  <div className="text-sm text-zinc-400 font-medium">/ 65 点</div>
+                </div>
+
+                {/* Detail Button */}
+                <button
+                  onClick={() => onShowDetail(company)}
+                  className="w-full inline-flex items-center justify-center gap-3 px-6 py-4 bg-zinc-900 text-white rounded-2xl font-bold text-lg hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-900/20 active:scale-95"
+                >
+                  <Info size={24} />
+                  詳細を見る
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

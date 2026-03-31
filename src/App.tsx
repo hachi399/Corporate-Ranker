@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, TrendingUp, AlertCircle, Zap } from 'lucide-react';
+import { Building2, TrendingUp, AlertCircle, Zap, Menu } from 'lucide-react';
 import CompanyInput from './components/CompanyInput';
 import RankingTable from './components/RankingTable';
 import DetailModal from './components/DetailModal';
@@ -22,6 +22,7 @@ export default function App() {
     type: 'evaluation',
     title: ''
   });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleEvaluate = async (names: string[]) => {
     setIsLoading(true);
@@ -111,6 +112,42 @@ export default function App() {
             >
               使い方
             </button>
+          </div>
+
+          <div className="sm:hidden relative">
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 transition"
+              aria-label="メニューを開く"
+            >
+              <Menu size={20} />
+            </button>
+
+            {isMobileMenuOpen && (
+              <div className="absolute right-0 mt-2 w-44 rounded-xl border border-zinc-200 bg-white shadow-lg z-40">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInfoModal({ isOpen: true, type: 'evaluation', title: '評価項目について' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                >
+                  評価項目について
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInfoModal({ isOpen: true, type: 'usage', title: '使い方' });
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                >
+                  使い方
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
