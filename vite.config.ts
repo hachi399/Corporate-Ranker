@@ -1,25 +1,15 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig, loadEnv} from 'vite';
+import {defineConfig} from 'vite';
 
-export default defineConfig(({mode}) => {
-  // Load from .env files
-  const env = loadEnv(mode, '.', 'VITE_');
-  
-  // Use process.env directly for GitHub Actions (runtime env vars)
-  // Fallback to env from .env files
-  const apiKey = process.env.VITE_GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || '';
-  
+export default defineConfig(() => {
   return {
-    base: '/Corporate-Ranker/',
+    base: process.env.VITE_BASE_PATH || '/',
     build: {
       outDir: 'docs',
     },
     plugins: [react(), tailwindcss()],
-    define: {
-      'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(apiKey),
-    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
