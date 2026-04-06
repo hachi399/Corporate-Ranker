@@ -71,7 +71,7 @@ grep -r "test" docs/assets/index-*.js | head -1
 コマンド出力に `test_api_key` が含まれる場合 → API キーが正しく埋め込まれている
 
 ### 3. 開発者ツールで確認
-1. ブラウザで https://hachi399.github.io/Corporate-Ranker/ を開く
+1. ブラウザで https://hachi-dev.codes/ を開く
 2. F12 キーで開発者ツール開く
 3. **Sources** タブをクリック
 4. `docs/assets/index-*.js` ファイルをクリック

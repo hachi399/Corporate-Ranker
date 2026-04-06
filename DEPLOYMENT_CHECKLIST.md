@@ -47,7 +47,7 @@ cp .env.example .env
   ```
 - [ ] GitHub の **Actions** タブでワークフロー実行を確認
 - [ ] "Build and Deploy to GitHub Pages" が緑（成功）であることを確認
-- [ ] `https://hachi399.github.io/Corporate-Ranker/` にアクセスして機能を確認
+- [ ] `https://hachi-dev.codes/` にアクセスして機能を確認
 
 ## 🔍 トラブルシューティング
 
@@ -91,7 +91,7 @@ cp .env.example .env
 
 ```bash
 # ✅ アプリが正常に動作しているか確認
-# https://hachi399.github.io/Corporate-Ranker/
+# https://hachi-dev.codes/
 # - ページが読み込まれるか
 # - コンポーネントが表示されるか
 # - API が呼び出せるか
