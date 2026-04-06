@@ -19,6 +19,8 @@ const DetailModal: React.FC<Props> = ({ company, onClose }) => {
   const [explanations, setExplanations] = useState<Record<string, { text: string; loading: boolean }>>({});
   const [tab, setTab] = useState<'front' | 'back'>('front');
 
+  if (!company) return null;
+
   const handleDoubleClick = async (itemId: string, label: string, score: number, rawValue: any) => {
     if (explanations[itemId]) return;
 
@@ -144,7 +146,7 @@ const DetailModal: React.FC<Props> = ({ company, onClose }) => {
                           
                           {/* AI Explanation Area (Desktop Inline) */}
                           <AnimatePresence>
-                            {(explanation || explanation?.loading) && (
+                            {explanation && (
                               <motion.div 
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -154,13 +156,13 @@ const DetailModal: React.FC<Props> = ({ company, onClose }) => {
                                   <MessageSquare size={14} />
                                   AI Analysis
                                 </div>
-                                {explanation?.loading ? (
+                                {explanation.loading ? (
                                   <div className="flex items-center gap-3 text-zinc-500 font-bold italic">
                                     <Loader2 size={16} className="animate-spin" />
                                     分析中...
                                   </div>
                                 ) : (
-                                  <div className="font-medium text-zinc-100">{explanation?.text}</div>
+                                  <div className="font-medium text-zinc-100">{explanation.text}</div>
                                 )}
                               </motion.div>
                             )}

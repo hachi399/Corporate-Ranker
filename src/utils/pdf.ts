@@ -65,7 +65,7 @@ export async function generatePDF(companies: CompanyScore[]) {
     }
     
     const tableData = allItems.map(item => [
-      (item as any).englishLabel || item.label,
+      item.label,
       company.scores[item.id],
       company.raw[item.id as keyof typeof company.raw]
     ]);

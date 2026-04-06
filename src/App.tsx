@@ -1,3 +1,4 @@
+/* @jsxRuntime classic */
 import React, { useState } from 'react';
 import { Building2, TrendingUp, AlertCircle, Zap, Menu } from 'lucide-react';
 import CompanyInput from './components/CompanyInput';

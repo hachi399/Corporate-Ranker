@@ -14,7 +14,7 @@ export default function RankingTable({ companies, onShowDetail, onExportPDF }: P
   const getChartData = (company: CompanyScore) => {
     const allItems = [...EVALUATION_ITEMS.front, ...EVALUATION_ITEMS.back];
     return allItems.map(item => ({
-      subject: (item as any).englishLabel || item.label,
+      subject: item.label,
       fullMark: 5,
       value: company.scores[item.id]
     }));
