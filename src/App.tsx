@@ -37,6 +37,10 @@ export default function App() {
         });
 
         const payload = await response.json();
+        if (!response.ok) {
+          console.error('debugApiKey request failed:', response.status, payload);
+          return;
+        }
         console.log('Vercel GEMINI_API_KEY (test):', payload?.apiKey || '(empty)');
       } catch (error) {
         console.error('Failed to fetch test API key:', error);
