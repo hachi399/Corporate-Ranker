@@ -34,6 +34,7 @@ cp .env.example .env
 
 - `GEMINI_API_KEY`: required
 - `ALLOWED_ORIGINS`: optional comma-separated CORS allowlist
+   - Example: `https://hachi-dev.codes,https://www.hachi-dev.codes,http://localhost:3000`
 
 4. Run dev server
 

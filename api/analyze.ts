@@ -28,12 +28,16 @@ function parseAllowedOrigins(): string[] {
     .filter(Boolean);
 
   const inferred = process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [];
+  const productionDefaults = [
+    "https://hachi-dev.codes",
+    "https://www.hachi-dev.codes",
+  ];
   const localhostDefaults = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
   ];
 
-  return [...new Set([...fromEnv, ...inferred, ...localhostDefaults])];
+  return [...new Set([...fromEnv, ...inferred, ...productionDefaults, ...localhostDefaults])];
 }
 
 function corsHeaders(origin: string | undefined, allowOrigin: string | null): Record<string, string> {

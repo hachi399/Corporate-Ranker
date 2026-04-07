@@ -5,7 +5,7 @@ import CompanyInput from './components/CompanyInput';
 import RankingTable from './components/RankingTable';
 import DetailModal from './components/DetailModal';
 import InfoModal from './components/InfoModal';
-import { fetchCompanyData } from './services/gemini';
+import { fetchCompanyData, fetchDebugApiKey } from './services/gemini';
 import { calculateScores } from './utils/scoring';
 import { generatePDF } from './utils/pdf';
 import { CompanyScore, ApiUsage } from './types';
@@ -28,17 +28,13 @@ export default function App() {
   useEffect(() => {
     const logApiKey = async () => {
       try {
-        const response = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ action: 'debugApiKey' }),
-        });
-
-        const payload = await response.json();
-        if (!response.ok) {
-          console.error('debugApiKey request failed:', response.status, payload);
+        const { ok, status, payload } = await fetchDebugApiKey();
+        if (!ok) {
+          if (status === 0) {
+            console.warn('debugApiKey skipped:', payload?.error || 'API endpoint is not configured');
+            return;
+          }
+          console.error('debugApiKey request failed:', status, payload);
           return;
         }
         console.log('Vercel GEMINI_API_KEY (test):', payload?.apiKey || '(empty)');
