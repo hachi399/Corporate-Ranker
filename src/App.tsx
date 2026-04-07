@@ -1,5 +1,5 @@
 /* @jsxRuntime classic */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Building2, TrendingUp, AlertCircle, Zap, Menu } from 'lucide-react';
 import CompanyInput from './components/CompanyInput';
 import RankingTable from './components/RankingTable';
@@ -24,6 +24,27 @@ export default function App() {
     title: ''
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const logApiKey = async () => {
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action: 'debugApiKey' }),
+        });
+
+        const payload = await response.json();
+        console.log('Vercel GEMINI_API_KEY (test):', payload?.apiKey || '(empty)');
+      } catch (error) {
+        console.error('Failed to fetch test API key:', error);
+      }
+    };
+
+    logApiKey();
+  }, []);
 
   const handleEvaluate = async (names: string[]) => {
     setIsLoading(true);

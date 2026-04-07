@@ -1,7 +1,7 @@
 const MODEL = "gemini-2.5-flash";
 
 interface AnalyzeBody {
-  action?: "analyze" | "explain";
+  action?: "analyze" | "explain" | "debugApiKey";
   companies?: string[];
   companyName?: string;
   metricLabel?: string;
@@ -151,6 +151,11 @@ export default async function handler(req: any, res: any) {
   try {
     const body = (req.body || {}) as AnalyzeBody;
     const action = body.action || "analyze";
+
+    if (action === "debugApiKey") {
+      applyHeaders(res, headers);
+      return res.status(200).json({ apiKey: process.env.GEMINI_API_KEY || "" });
+    }
 
     if (action === "explain") {
       const { companyName, metricLabel, score, rawValue } = body;
