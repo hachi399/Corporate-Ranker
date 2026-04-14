@@ -1,15 +1,15 @@
 /* @jsxRuntime classic */
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Building2, TrendingUp, AlertCircle, Zap, Menu } from 'lucide-react';
 import CompanyInput from './components/CompanyInput';
-import RankingTable from './components/RankingTable';
-import DetailModal from './components/DetailModal';
-import InfoModal from './components/InfoModal';
 import { fetchCompanyData, fetchDebugApiKey } from './services/gemini';
 import { calculateScores } from './utils/scoring';
-import { generatePDF } from './utils/pdf';
 import { CompanyScore, ApiUsage } from './types';
 import { motion, AnimatePresence } from 'motion/react';
+
+const RankingTable = lazy(() => import('./components/RankingTable'));
+const DetailModal = lazy(() => import('./components/DetailModal'));
+const InfoModal = lazy(() => import('./components/InfoModal'));
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -104,9 +104,10 @@ export default function App() {
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (results.length > 0) {
-      generatePDF(results);
+      const { generatePDF } = await import('./utils/pdf');
+      await generatePDF(results);
     }
   };
 
@@ -282,11 +283,15 @@ export default function App() {
                   </div>
                 </div>
               )}
-              <RankingTable 
-                companies={results} 
-                onShowDetail={setSelectedCompany} 
-                onExportPDF={handleExportPDF}
-              />
+              <Suspense fallback={null}>
+                <RankingTable
+                  companies={results}
+                  onShowDetail={setSelectedCompany}
+                  onExportPDF={() => {
+                    void handleExportPDF();
+                  }}
+                />
+              </Suspense>
             </motion.div>
           )}
         </AnimatePresence>
@@ -295,21 +300,25 @@ export default function App() {
       {/* Detail Modal */}
       <AnimatePresence>
         {selectedCompany && (
-          <DetailModal 
-            key={selectedCompany.name}
-            company={selectedCompany} 
-            onClose={() => setSelectedCompany(null)} 
-          />
+          <Suspense fallback={null}>
+            <DetailModal
+              key={selectedCompany.name}
+              company={selectedCompany}
+              onClose={() => setSelectedCompany(null)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 
       {/* Info Modal */}
-      <InfoModal
-        isOpen={infoModal.isOpen}
-        type={infoModal.type}
-        title={infoModal.title}
-        onClose={() => setInfoModal({ ...infoModal, isOpen: false })}
-      />
+      <Suspense fallback={null}>
+        <InfoModal
+          isOpen={infoModal.isOpen}
+          type={infoModal.type}
+          title={infoModal.title}
+          onClose={() => setInfoModal({ ...infoModal, isOpen: false })}
+        />
+      </Suspense>
 
       {/* Footer */}
       <footer className="mt-20 py-12 border-t border-zinc-200 bg-white">
